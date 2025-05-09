@@ -1,68 +1,95 @@
+#include <WiFi.h>
 #include <Wire.h>
 #include <MPU6050.h>
+#include <WebServer.h>
+const char* ssid = "Darren’s iPhone";
+const char* password = "password";
 
 MPU6050 mpu;
+WebServer server(80);
+
+float pitchOffset = 0;
+float rollOffset = 0;
+
+void calibrateOffsets() {
+  int16_t ax, ay, az;
+  float pitchSum = 0, rollSum = 0;
+
+  for (int i = 0; i < 20; i++) {
+    mpu.getAcceleration(&ax, &ay, &az);
+    float pitch = atan2(ax, sqrt(ay * ay + az * az)) * 180.0 / PI;
+    float roll = atan2(ay, sqrt(ax * ax + az * az)) * 180.0 / PI;
+    pitchSum += pitch;
+    rollSum += roll;
+    delay(50);
+  }
+
+  pitchOffset = pitchSum / 20.0;
+  rollOffset = rollSum / 20.0;
+  Serial.println("Calibration done");
+}
+
+void handleRoot() {
+  server.send(200, "text/html", R"rawliteral(
+    <!DOCTYPE html><html>
+    <head>
+      <meta charset="UTF-8">
+      <title>ESP32 Quadcopter Tilt</title>
+    </head>
+    <body>
+      <h2>ESP32 Drone Tilt Monitor</h2>
+      <p>Pitch: <span id="pitch">--</span>°</p>
+      <p>Roll: <span id="roll">--</span>°</p>
+      <script>
+        setInterval(() => {
+          fetch("/data").then(r => r.text()).then(t => {
+            let [pitch, roll] = t.split(",");
+            document.getElementById("pitch").textContent = pitch;
+            document.getElementById("roll").textContent = roll;
+          });
+        }, 1000);
+      </script>
+    </body></html>
+  )rawliteral");
+}
+
+void handleData() {
+  int16_t ax, ay, az;
+  mpu.getAcceleration(&ax, &ay, &az);
+  float pitch = atan2(ax, sqrt(ay * ay + az * az)) * 180.0 / PI - pitchOffset;
+  float roll = atan2(ay, sqrt(ax * ax + az * az)) * 180.0 / PI - rollOffset;
+  String data = String(pitch, 2) + "," + String(roll, 2);
+  server.send(200, "text/plain", data);
+}
 
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(115200);
-  Wire.begin(21, 22); // SDA = 21, SCL = 22
+  Wire.begin(21, 22);
   mpu.initialize();
   mpu.setDLPFMode(3);
 
   if (mpu.testConnection()) {
-    Serial.println("MPU6050 connected successfully.");
+    Serial.println("MPU6050 connected");
   } else {
-    Serial.println("MPU6050 connection failed.");
+    Serial.println("MPU6050 connection failed");
   }
 
-  pinMode(16, OUTPUT);
-  pinMode(2, OUTPUT);
-  pinMode(23, OUTPUT);
-  pinMode(17, OUTPUT);
-  pinMode(12, OUTPUT);
-  pinMode(25, OUTPUT);
+  calibrateOffsets();
+
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nConnected, IP address: ");
+  Serial.println(WiFi.localIP());
+
+  server.on("/", handleRoot);
+  server.on("/data", handleData);
+  server.begin();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  int16_t ax, ay, az;
-  int16_t gx, gy, gz;
-
-  mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-
-  Serial.print("a/g:\t");
-  Serial.print(ax - 2500); Serial.print("\t");
-  Serial.print(ay - 600); Serial.print("\t");
-  Serial.print((az - 18000) * 360 / 30000); Serial.print("\t");
-  Serial.print(gx - 90); Serial.print("\t");
-  Serial.print(gy + 600); Serial.print("\t");
-  Serial.println(gz - 60);
-
-  delay(500);
-
-
-  // digitalWrite(25, HIGH);
-  // digitalWrite(23, HIGH);
-  // digitalWrite(17, HIGH);
-  // digitalWrite(12, HIGH);
-  // digitalWrite(2, HIGH);
-  // delay(1000);
-  // digitalWrite(2, LOW);
-  // digitalWrite(25, LOW);
-  // digitalWrite(23, LOW);
-  // digitalWrite(17, LOW);
-  // digitalWrite(12, LOW);
-  // delay(1000);
-
-  // digitalWrite(23, HIGH);
-  // digitalWrite(17, HIGH);
-  // digitalWrite(12, HIGH);
-  // digitalWrite(25, HIGH);
-  // delay(1000);
-  // digitalWrite(23, LOW);
-  // digitalWrite(17, LOW);
-  // digitalWrite(12, LOW);
-  // digitalWrite(25, LOW);
-  // delay(1000);
+  server.handleClient();
 }
