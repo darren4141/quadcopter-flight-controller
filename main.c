@@ -31,36 +31,88 @@ void calibrateOffsets() {
 
 void handleRoot() {
   server.send(200, "text/html", R"rawliteral(
-    <!DOCTYPE html><html>
-    <head>
-      <meta charset="UTF-8">
-      <title>ESP32 Quadcopter Tilt</title>
-    </head>
-    <body>
-      <h2>ESP32 Drone Tilt Monitor</h2>
-      <p>Pitch: <span id="pitch">--</span>°</p>
-      <p>Roll: <span id="roll">--</span>°</p>
-      <script>
-        setInterval(() => {
-          fetch("/data").then(r => r.text()).then(t => {
-            let [pitch, roll] = t.split(",");
-            document.getElementById("pitch").textContent = pitch;
-            document.getElementById("roll").textContent = roll;
-          });
-        }, 1000);
-      </script>
-    </body></html>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>3D Tilt Visualizer</title>
+  <style>
+    body { margin: 0; overflow: hidden; font-family: sans-serif; }
+    canvas { display: block; }
+    #recalBtn {
+      position: absolute;
+      top: 20px; left: 20px;
+      z-index: 10;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <button id="recalBtn" onclick="recalibrate()">Recalibrate</button>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js"></script>
+  <script>
+    let scene = new THREE.Scene();
+    let camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    let renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    let geometry = new THREE.BoxGeometry(2, 0.2, 2);
+    let material = new THREE.MeshNormalMaterial();
+    let cube = new THREE.Mesh(geometry, material);
+    scene.add(cube);
+
+    camera.position.z = 5;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    function updateOrientation(pitch, roll) {
+      // Convert degrees to radians
+      cube.rotation.z = -pitch * Math.PI / 180;
+      cube.rotation.x = -roll * Math.PI / 180;
+    }
+
+    function fetchData() {
+      fetch("/data")
+        .then(res => res.json())
+        .then(data => {
+          updateOrientation(data.pitch, data.roll);
+        });
+    }
+
+    setInterval(fetchData, 100);
+
+    function recalibrate() {
+      const btn = document.getElementById("recalBtn");
+      btn.disabled = true;
+      const original = btn.textContent;
+      btn.textContent = "Calibrating...";
+      fetch("/recalibrate").then(() => {
+        btn.textContent = original;
+        btn.disabled = false;
+      });
+    }
+  </script>
+</body>
+</html>
   )rawliteral");
 }
 
 void handleData() {
   int16_t ax, ay, az;
   mpu.getAcceleration(&ax, &ay, &az);
+
   float pitch = atan2(ax, sqrt(ay * ay + az * az)) * 180.0 / PI - pitchOffset;
-  float roll = atan2(ay, sqrt(ax * ax + az * az)) * 180.0 / PI - rollOffset;
-  String data = String(pitch, 2) + "," + String(roll, 2);
-  server.send(200, "text/plain", data);
+  float roll  = atan2(ay, sqrt(ax * ax + az * az)) * 180.0 / PI - rollOffset;
+
+  String json = "{\"pitch\":" + String(pitch, 2) + ",\"roll\":" + String(roll, 2) + "}";
+  server.send(200, "application/json", json);
 }
+
 
 void setup() {
   Serial.begin(115200);
@@ -87,6 +139,11 @@ void setup() {
 
   server.on("/", handleRoot);
   server.on("/data", handleData);
+  server.on("/recalibrate", HTTP_GET, []() {
+    calibrateOffsets();
+    server.send(200, "text/plain", "OK");
+  });
+
   server.begin();
 }
 
