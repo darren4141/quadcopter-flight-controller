@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Quadcopter Tilt Visualizer</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <h1>Quadcopter Tilt Visualizer</h1>
+  </header>
+
+  <main id="middle">
+    <div id="render-area">
+      <canvas id="three-canvas"></canvas>
+    </div>
+    <div id="log-panel">
+      <table>
+        <thead><tr><th>Time</th><th>Pitch</th><th>Roll</th></tr></thead>
+        <tbody id="log-body"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <section id="overlay">
+    <div>
+      <h3>Orientation</h3>
+      <p>Pitch: <span id="pitch">--</span>°</p>
+      <p>Roll: <span id="roll">--</span>°</p>
+      <button onclick="recalibrate()">Recalibrate</button>
+    </div>
+    <div>
+      <h3 style="text-align:center;">Motor Control</h3>
+      <div class="slider-group">
+        <div><strong>Motor 1</strong><br><span id="label1">0%</span><br><input type="range" id="m1" min="0" max="255" value="0" oninput="updatePWM()"></div>
+        <div><strong>Motor 2</strong><br><span id="label2">0%</span><br><input type="range" id="m2" min="0" max="255" value="0" oninput="updatePWM()"></div>
+        <div><strong>Motor 3</strong><br><span id="label3">0%</span><br><input type="range" id="m3" min="0" max="255" value="0" oninput="updatePWM()"></div>
+        <div><strong>Motor 4</strong><br><span id="label4">0%</span><br><input type="range" id="m4" min="0" max="255" value="0" oninput="updatePWM()"></div>
+        <div><strong>All Motors</strong><br><span id="labelMaster">0%</span><br><input type="range" id="master" min="0" max="255" value="0" oninput="syncAll(this.value)"></div>
+      </div>
+    </div>
+    <div>
+      <h3>Controls</h3>
+      <button id="stopBtn" onclick="emergencyStop()">Emergency Stop</button>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js"></script>
+  <script src="/script.js"></script>
+</body>
+</html>
