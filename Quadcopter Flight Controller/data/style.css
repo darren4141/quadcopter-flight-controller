@@ -1,0 +1,106 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+header {
+  text-align: center;
+  background-color: #222;
+  color: white;
+  padding: 10px;
+}
+
+#middle {
+  display: flex;
+  height: 50%;
+}
+
+#render-area {
+  flex: 1;
+  background-color: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#three-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+#log-panel {
+  width: 300px;
+  overflow-y: auto;
+  background-color: #111;
+  color: #ccc;
+  border-left: 2px solid #333;
+}
+
+#log-panel table {
+  width: 100%;
+  font-size: 0.9em;
+  border-collapse: collapse;
+}
+
+#log-panel th, #log-panel td {
+  padding: 4px;
+  text-align: center;
+}
+
+#log-panel th {
+  background-color: #222;
+  position: sticky;
+  top: 0;
+}
+
+#log-panel tr:nth-child(even) {
+  background-color: #1a1a1a;
+}
+
+#overlay {
+  height: 50%;
+  display: flex;
+  justify-content: space-between;
+  background: white;
+  color: black;
+  border-top: 2px solid #ccc;
+  padding: 10px 20px;
+}
+
+#overlay > div {
+  flex: 1;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+
+#overlay > div:not(:last-child) {
+  border-right: 2px solid #ccc;
+}
+
+.slider-group {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  height: 200px;
+}
+
+input[type="range"] {
+  writing-mode: bt-lr;
+  transform: rotate(270deg);
+  height: 150px;
+}
+
+#stopBtn {
+  background: red;
+  color: white;
+  padding: 15px 25px;
+  font-size: 1em;
+}
