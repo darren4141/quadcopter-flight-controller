@@ -82,6 +82,8 @@ void setup() {
   for (int i = 0; i < 4; i++) {
     ledcSetup(pwmChannels[i], 5000, 8);           // 5kHz, 8-bit
     ledcAttachPin(motorPins[i], pwmChannels[i]);
+    ledcWrite(pwmChannels[i], 0);
+
   }
 
   server.on("/data", handleData);
