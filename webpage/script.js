@@ -60,8 +60,17 @@ function syncAll(val) {
 }
 
 function recalibrate() {
-  fetch("/recalibrate");
+  const btn = document.getElementById("recalibrateBtn");
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = "Calibrating...";
+
+  fetch("/recalibrate").then(() => {
+    btn.disabled = false;
+    btn.textContent = originalText;
+  });
 }
+
 
 function emergencyStop() {
   ['m1', 'm2', 'm3', 'm4'].forEach((id, i) => {

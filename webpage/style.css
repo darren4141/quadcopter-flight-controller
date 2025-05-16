@@ -20,7 +20,7 @@ header {
 
 #render-area {
   flex: 1;
-  background-color: black;
+  background-color: rgb(28, 28, 28);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -64,7 +64,7 @@ header {
   height: 50%;
   display: flex;
   justify-content: space-between;
-  background: white;
+  background: rgb(189, 189, 189);
   color: black;
   border-top: 2px solid #ccc;
   padding: 10px 20px;
@@ -103,4 +103,18 @@ input[type="range"] {
   color: white;
   padding: 15px 25px;
   font-size: 1em;
+}
+
+#recalibrateBtn {
+  background-color: #ccc;
+  width: 160px;
+  padding: 10px 20px;
+  font-size: 1em;
+  transition: background 0.2s;
+}
+
+#recalibrateBtn:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
 }
