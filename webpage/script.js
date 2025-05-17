@@ -13,16 +13,18 @@ function animate() {
 }
 animate();
 
-function updateOrientation(pitch, roll) {
+function updateOrientation(yaw, pitch, roll) {
+  // cube.rotation.y = yaw * Math.PI / 180;
   cube.rotation.z = pitch * Math.PI / 180;
   cube.rotation.x = roll * Math.PI / 180;
 
+  document.getElementById("yaw").textContent = yaw.toFixed(1);
   document.getElementById("pitch").textContent = pitch.toFixed(1);
   document.getElementById("roll").textContent = roll.toFixed(1);
 
   const time = new Date().toLocaleTimeString();
   let row = document.createElement("tr");
-  row.innerHTML = `<td>${time}</td><td>${pitch.toFixed(1)}</td><td>${roll.toFixed(1)}</td>`;
+  row.innerHTML = `<td>${time}</td><td>${yaw.toFixed(1)}</td><td>${pitch.toFixed(1)}</td><td>${roll.toFixed(1)}</td>`;
   let logBody = document.getElementById("log-body");
   logBody.appendChild(row);
   if (logBody.rows.length > 15) logBody.removeChild(logBody.firstChild);
@@ -30,7 +32,7 @@ function updateOrientation(pitch, roll) {
 
 function fetchData() {
   fetch("/data").then(res => res.json()).then(data => {
-    updateOrientation(data.pitch, data.roll);
+    updateOrientation(data.yaw, data.pitch, data.roll);
   });
 }
 setInterval(fetchData, 100);
@@ -69,7 +71,7 @@ function recalibrate() {
     btn.disabled = false;
     btn.textContent = originalText;
   });
-}
+}s
 
 
 function emergencyStop() {

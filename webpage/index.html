@@ -16,7 +16,7 @@
     </div>
     <div id="log-panel">
       <table>
-        <thead><tr><th>Time</th><th>Pitch</th><th>Roll</th></tr></thead>
+        <thead><tr><th>Time</th><th>Yaw</th><th>Pitch</th><th>Roll</th></tr></thead>
         <tbody id="log-body"></tbody>
       </table>
     </div>
@@ -25,6 +25,7 @@
   <section id="overlay">
     <div>
       <h3>Orientation</h3>
+      <p>Yaw: <span id="yaw">--</span>°</p>
       <p>Pitch: <span id="pitch">--</span>°</p>
       <p>Roll: <span id="roll">--</span>°</p>
       <button id="recalibrateBtn" onclick="recalibrate()">Recalibrate</button>
